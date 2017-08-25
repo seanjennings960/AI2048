@@ -1,4 +1,4 @@
-from Board2048 import Board2048
+import Board2048
 from NeuralNet import NeuralNet,netParams
 import copy
 from random import random, choice
@@ -20,7 +20,7 @@ def epGreedyPolicy(board,net,ep):
     #find the values of all after states to determine best
     maxAfterValue = float('-inf')
     for move in validMoves:
-        boardCopy = board.move(move,retCopy=True,afterState=True)
+        boardCopy = Board2048.move(board,move,afterState=True)
         afterValue = net.forward(boardCopy)
         if afterValue>maxAfterValue:
             maxAfterValue = afterValue

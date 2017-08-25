@@ -178,25 +178,20 @@ class Board2048:
         return tilesChange
 
 
-    def move(self,direct,retCopy=False,afterState=False):
-        if retCopy:
-            board = copy.deepcopy(self)
-        else:
-            board = self
-        if board.checkValidMove(direct):
+    def move(self,direct,afterState=False):
+        if self.checkValidMove(direct):
             if direct == 'up':
-                reward = board.moveUp()
+                reward = self.moveUp()
             elif direct == 'down':
-                reward = board.moveDown()
+                reward = self.moveDown()
             elif direct == 'right':
-                reward = board.moveRight()
+                reward = self.moveRight()
             else:
-                reward = board.moveLeft()
-            board.score += reward
+                reward = self.moveLeft()
+            self.score += reward
             if not afterState:
-                board.genNewTile()
-        if retCopy:
-            return board
+                self.genNewTile()
+        return reward
 
     def gameOver(self):
         moves = ['up','down','left','right']
@@ -205,6 +200,11 @@ class Board2048:
                 return False #if there is a valid move, it is not game over
         return True #if there are no valid moves, game over is True
         
+def move(board,direct,afterState=False):
+    boardCopy = copy.deepcopy(board)
+    boardCopy.move(direct,afterState)
+    return boardCopy
+
 
 ##    def up(self):
 ##        if self.checkValidMove('up'):

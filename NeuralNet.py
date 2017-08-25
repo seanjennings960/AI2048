@@ -15,7 +15,7 @@ netParams = {
 }
 
 def sigmoid(x):
-    return 1/(1+np.exp(o-x))
+    return 1/(1+np.exp(-x))
 
 
 class NeuralNet():
