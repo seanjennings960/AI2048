@@ -191,7 +191,8 @@ class Board2048:
             self.score += reward
             if not afterState:
                 self.genNewTile()
-        return reward
+            return reward 
+
 
     def gameOver(self):
         moves = ['up','down','left','right']
