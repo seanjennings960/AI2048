@@ -2,12 +2,20 @@ from random import choice
 from random import random
 import copy
 
+# Probability that a new tile that is generated is a 2 (instead of 4)
+PROB_2 = 0.8
 
 class Board2048:
     def __init__(self):
-        self.tiles = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]
-        self.combined = [[False,False,False,False],[False,False,False,False],[False,False,False,False],[False,False,False,False]]
-        #whether each tile has combined with another tile on the current move
+        self.tiles = [[0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0],
+                      [0, 0, 0, 0]]
+        self.combined = [[False, False, False, False],
+                         [False, False, False, False],
+                         [False, False, False, False],
+                         [False, False, False, False]]
+        # Whether each tile has combined with another tile on the current move
         self.genNewTile()
         self.genNewTile()
         self.score = 0
@@ -17,23 +25,30 @@ class Board2048:
         return self.getTile(i,j)
 
     def genNewTile(self):
-        # generates new tile (either 2 or 4) in empty tile (val=0) returns True
-        # if there are no empty tiles, returns False
+        """
+        Generates new tile (either 2 or 4) in empty tile (val=0) returns True
+        if there are no empty tiles, returns False
+        """
+        # Find which tiles are empty
         emptyList = []
         for i in range(4):
             for j in range(4):
-                tileKey = 4*i+j
-                if self.isTileEmpty(i,j):
+                tileKey = 4*i + j
+                if self.isTileEmpty(i, j):
                     emptyList.append(tileKey)
-        if len(emptyList)==0:
+
+        # If there's no empty tiles, return false
+        if len(emptyList) == 0:
             return False
+
+        # Choose tile from empty tiles and fill in 2 or 4.
         newTileKey = choice(emptyList)
         iNew = newTileKey//4
         jNew = newTileKey%4
-        if random()>0.8:
-            self.tiles[iNew][jNew]=4
+        if random() > PROB_2:
+            self.tiles[iNew][jNew] = 4
         else:
-            self.tiles[iNew][jNew]=2
+            self.tiles[iNew][jNew] = 2
         return True
 
     def resetCombined(self):
@@ -41,80 +56,92 @@ class Board2048:
             for j in range(4):
                 self.combined[i][j] = False
 
-    def getCombined(self,i,j):
+    def getCombined(self, i, j):
         return self.combined[i][j]
 
-    def setCombined(self,i,j):
+    def setCombined(self, i, j):
         self.combined[i][j] = True
 
-    def emptyTile(self,i,j):
+    def emptyTile(self, i, j):
         self.tiles[i][j]=0
 
-    def setTile(self,i,j,val):
+    def setTile(self, i, j, val):
         self.tiles[i][j] = val
 
-    def getTile(self,i,j):
+    def getTile(self, i, j):
         val = self.tiles[i][j]
         return val
 
-    def isTileEmpty(self,i,j):
+    def isTileEmpty(self, i, j):
         return self.tiles[i][j]==0
 
-    def slideTile(self,i,j,direct):
-        #slides tile[i,j] in given direction until it hits another tile or the wall
-        #if it hits another tile that's the same, they combine
+    def slideTile(self, i, j, direct):
+        """
+        Slides tile[i,j] in given direction until it hits another tile or the wall
+        if it hits another tile that's the same, they combine.
+        """
         tile = self.getTile(i,j)
         if direct=='up':                        # if the direction is up
-            iRange = list(range(i-1,-1,-1))     # list the squares above i,j
+            iRange = list(range(i - 1, -1, -1))     # list the squares above i,j
             jRange = [j]*len(iRange)            # in iRange,jRange
-        elif direct=='down':                    
-            iRange = list(range(i+1,4))
+        elif direct=='down':
+            iRange = list(range(i + 1, 4))
             jRange = [j]*len(iRange)
         elif direct=='left':
-            jRange = list(range(j-1,-1,-1))
+            jRange = list(range(j - 1, -1, -1))
             iRange = [i]*len(jRange)
         else:
-            jRange = list(range(j+1,4))
+            jRange = list(range(j + 1, 4))
             iRange = [i]*len(jRange)
 
-        for k in range(len(iRange)):   # for each tile in the range above, below, to the left or right    
-            nextTile = self.getTile(iRange[k],jRange[k])
-            nextTileCombined = self.getCombined(iRange[k],jRange[k])
-            if nextTile!=0:    #if the next tile isn't empty
-                if nextTile==tile and not nextTileCombined:      #and it's the same as the original tile and the next tile hasn't already been combined
+        # For each tile in the range above, below, to the left or right
+        for k in range(len(iRange)):
+            nextTile = self.getTile(iRange[k], jRange[k])
+            nextTileCombined = self.getCombined(iRange[k], jRange[k])
+            # If the next tile isn't empty
+            if nextTile != 0:
+                # And it's the same as the original tile and the next tile
+                # hasn't already been combined
+                if nextTile == tile and not nextTileCombined:
                     totalVal = tile*2
-                    self.setTile(iRange[k],jRange[k],totalVal)  #combine the tiles in the place of the hit tile
-                    self.setCombined(iRange[k],jRange[k])       #mark that next Tile has combined
-                    self.emptyTile(i,j)                #and empty the original
-                    return totalVal
-                elif k==0:              #if the tiles are different and it's the first tile
-                    return 0             #do nothing
-                else:                   #if they are different and it's after the first tile to check
-                    #move tile to place before next
+                    # Combine the tiles in the place of the hit tile, set
+                    # combined, and empty original tile.
+                    self.setTile(iRange[k],jRange[k],totalVal)
+                    self.setCombined(iRange[k],jRange[k])
                     self.emptyTile(i,j)
-                    self.setTile(iRange[k-1],jRange[k-1],tile)  #set the space before the nonempty tile to the current
+                    return totalVal
+                # If the tiles are different and it's the first tile
+                elif k == 0:
+                    return 0 # Do nothing
+                # Of they are different and it's after the first tile
+                else:
+                    # Move tile to place before next tile
+                    self.emptyTile(i,j)
+                    # Set the space before the nonempty tile to the current
+                    self.setTile(iRange[k - 1],jRange[k - 1],tile)
                 return 0
-            elif k==len(iRange)-1:        #if it has gone through all squares and they were all empty
+            # If it has gone through all squares and they were all empty
+            elif k == len(iRange) - 1:
                 self.setTile(iRange[k],jRange[k],tile)
                 self.emptyTile(i,j)
                 return 0
 
-    def print(self):
-        for line in self.tiles:
-            for square in line:
-                print(square,end='   ')
-            print()
+    # def print(self):
+    #     for line in self.tiles:
+    #         for square in line:
+    #             print(square,end='   ')
+    #         print()
 
     def moveUp(self):
         self.resetCombined()
         reward = 0
+        # Iterate through tiles
         for j in range(4):
-            #for each column
             for i in range(1,4):
-                #for each of the bottom three grid spaces
+                # For each of the bottom three grid spaces
                 # see if there are tiles to be moved
-                #j=0 doesn't need to be moved regardless of if there is a tile
-                if not self.isTileEmpty(i,j):         #if the original tile is not empty
+                # j=0 doesn't need to be moved regardless of if there is a tile
+                if not self.isTileEmpty(i,j):
                     rewardPart = self.slideTile(i,j,'up')
                     reward += rewardPart
         return reward
@@ -124,8 +151,8 @@ class Board2048:
         reward = 0
         for j in range(4):
             for i in range(2,-1,-1):
-                #for each of the top three spaces in each column
-                #must start at the second to bottom and go up
+                # For each of the top three spaces in each column
+                # Must start at the second to bottom and go up
                 if not self.isTileEmpty(i,j):
                     rewardPart = self.slideTile(i,j,'down')
                     reward += rewardPart
@@ -154,9 +181,10 @@ class Board2048:
         return reward
 
     def checkValidMove(self,move):
-        #input the move as a string ('up','down','left','right')
-        #returns true if move results in different position than the start position
-        #also completes the move
+        """
+        Input the move as a string ('up','down','left','right')
+        Returns true if move results in different position than the start position
+        """
         boardCopy = copy.deepcopy(self)
         tilesChange = False
         if move == 'up':
@@ -178,7 +206,7 @@ class Board2048:
         return tilesChange
 
 
-    def move(self,direct,afterState=False):
+    def move(self, direct, afterState=False):
         if self.checkValidMove(direct):
             if direct == 'up':
                 reward = self.moveUp()
@@ -198,30 +226,30 @@ class Board2048:
         moves = ['up','down','left','right']
         for move in moves:
             if self.checkValidMove(move):
-                return False #if there is a valid move, it is not game over
-        return True #if there are no valid moves, game over is True
+                return False # If there is a valid move, it is not game over
+        return True # If there are no valid moves, game over is True
         
-def move(board,direct,afterState=False):
+def move(board, direct, afterState=False):
     boardCopy = copy.deepcopy(board)
-    boardCopy.move(direct,afterState)
+    boardCopy.move(direct, afterState)
     return boardCopy
 
 
-##    def up(self):
-##        if self.checkValidMove('up'):
-##            self.
-##            self.genNewTile()
-##
-##    def down(self):
-##        if self.checkValidMove('down'):
-##            self.genNewTile()
-##
-##    def right(self):
-##        if self.checkValidMove('right'):
-##            self.genNewTile()
-##
-##    def left(self):
-##        if self.checkValidMove('left'):
-##            self.genNewTile()
+   # def up(self):
+   #     if self.checkValidMove('up'):
+   #         self.
+   #         self.genNewTile()
+
+   # def down(self):
+   #     if self.checkValidMove('down'):
+   #         self.genNewTile()
+
+   # def right(self):
+   #     if self.checkValidMove('right'):
+   #         self.genNewTile()
+
+   # def left(self):
+   #     if self.checkValidMove('left'):
+   #         self.genNewTile()
 
 
