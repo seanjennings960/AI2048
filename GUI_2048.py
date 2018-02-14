@@ -17,7 +17,7 @@ TILE_COLORS = {
     1024: '#ffff1a',
     2048: '#ffff00',
 }
-    
+
 
 class Gui2048:
     """

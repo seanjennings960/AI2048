@@ -13,7 +13,7 @@ netParams = {
     'nodesPerSquare': 3,
     # Values up to and including cutoffVal[i+1] are included in node i
     # len(cutoffVals) = nodesPerSquare+1
-    'cutoffVals': [1,8,64,2048],
+    'cutoffVals': [1, 8, 64, 2048],
     'boardToStateConv': 'log' #type of conversion from board to state
 }
 
@@ -97,7 +97,7 @@ class NeuralNet():
     def backward(self, board, estTrueVal):
         """
         Calculates the gradient of the value function in the direction of
-        the minimum error betweem the approximated neural net value and the
+        the minimum error between the approximated neural net value and the
         true value (estimated by the reward and value of the next state)
         """
         value = self.forward(board)
@@ -119,3 +119,5 @@ class NeuralNet():
                                 np.atleast_2d(self.act_vals[i-1]))
             dThetas.append(dThetai)
         return dThetas
+
+    def update_params(self, dThetas):

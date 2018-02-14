@@ -78,7 +78,7 @@ class Board2048:
     def slideTile(self, i, j, direct):
         """
         Slides tile[i,j] in given direction until it hits another tile or the wall
-        if it hits another tile that's the same, they combine.
+        if it hits another tile theat's the same, they combine.
         """
         tile = self.getTile(i,j)
         if direct=='up':                        # if the direction is up
