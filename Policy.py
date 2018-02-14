@@ -4,6 +4,11 @@ import copy
 from random import random, choice
 
 
+# TODO: better define the interface with the policy
+# Policy should take in a state and give out an action
+# The programming of it currently is very functional
+# Net and board should be built into the policy
+
 def epGreedyPolicy(board, net, ep):
     """
     Given a board and a neural net, returns a move based on an ep greedy
@@ -32,6 +37,8 @@ def epGreedyPolicy(board, net, ep):
     else:
         # If there's only one move then pick still pick the best. There
         # should always be at least one valid move or else game would be over
+        if len(validMoves) == 0:
+            raise ValueError('No valid moves. Policy cannot determine action.')
         if len(validMoves)==1:
             return bestMove
         else:
