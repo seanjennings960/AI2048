@@ -1,4 +1,4 @@
-from Tkinter import *
+from tkinter import *
 import ttk
 from Board2048 import *
 

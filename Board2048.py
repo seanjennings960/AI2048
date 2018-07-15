@@ -1,9 +1,18 @@
 from random import choice
 from random import random
 import copy
+from enum import Enum
 
 # Probability that a new tile that is generated is a 2 (instead of 4)
 PROB_2 = 0.8
+
+
+class Move(Enum):
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+
 
 class Board2048:
     def __init__(self):
@@ -81,13 +90,13 @@ class Board2048:
         if it hits another tile theat's the same, they combine.
         """
         tile = self.getTile(i,j)
-        if direct=='up':                        # if the direction is up
+        if direct==Move.UP:                        # if the direction is up
             iRange = list(range(i - 1, -1, -1))     # list the squares above i,j
             jRange = [j]*len(iRange)            # in iRange,jRange
-        elif direct=='down':
+        elif direct==Move.DOWN:
             iRange = list(range(i + 1, 4))
             jRange = [j]*len(iRange)
-        elif direct=='left':
+        elif direct==Move.LEFT:
             jRange = list(range(j - 1, -1, -1))
             iRange = [i]*len(jRange)
         else:
@@ -142,7 +151,7 @@ class Board2048:
                 # see if there are tiles to be moved
                 # j=0 doesn't need to be moved regardless of if there is a tile
                 if not self.isTileEmpty(i,j):
-                    rewardPart = self.slideTile(i,j,'up')
+                    rewardPart = self.slideTile(i, j, Move.UP)
                     reward += rewardPart
         return reward
 
@@ -154,7 +163,7 @@ class Board2048:
                 # For each of the top three spaces in each column
                 # Must start at the second to bottom and go up
                 if not self.isTileEmpty(i,j):
-                    rewardPart = self.slideTile(i,j,'down')
+                    rewardPart = self.slideTile(i, j, Move.DOWN)
                     reward += rewardPart
         return reward
 
@@ -165,35 +174,34 @@ class Board2048:
         for i in range(4):
             for j in range(2,-1,-1):
                 if not self.isTileEmpty(i,j):
-                    rewardPart = self.slideTile(i,j,'right')
+                    rewardPart = self.slideTile(i, j,Move.RIGHT)
                     reward += rewardPart
         return reward
 
-    
     def moveLeft(self):
         self.resetCombined()
         reward = 0
         for i in range(4):
             for j in range(1,4):
                 if not self.isTileEmpty(i,j):
-                    rewardPart = self.slideTile(i,j,'left')
+                    rewardPart = self.slideTile(i,j,Move.LEFT)
                     reward += rewardPart
         return reward
 
-    def checkValidMove(self,move):
+    def checkValidMove(self, move):
         """
-        Input the move as a string ('up','down','left','right')
+        Input the move as an Enum
         Returns true if move results in different position than the start position
         """
         boardCopy = copy.deepcopy(self)
         tilesChange = False
-        if move == 'up':
+        if move == Move.UP:
             boardCopy.moveUp()
-        elif move == 'down':
+        elif move == Move.DOWN:
             boardCopy.moveDown()
-        elif move == 'left':
+        elif move == Move.LEFT:
             boardCopy.moveLeft()
-        elif move == 'right':
+        elif move == Move.RIGHT:
             boardCopy.moveRight()
         else:
             raise ValueError('Invalid Move was input')
@@ -205,14 +213,13 @@ class Board2048:
         del(boardCopy)
         return tilesChange
 
-
     def move(self, direct, afterState=False):
         if self.checkValidMove(direct):
-            if direct == 'up':
+            if direct == Move.UP:
                 reward = self.moveUp()
-            elif direct == 'down':
+            elif direct == Move.DOWN:
                 reward = self.moveDown()
-            elif direct == 'right':
+            elif direct == Move.RIGHT:
                 reward = self.moveRight()
             else:
                 reward = self.moveLeft()
@@ -223,12 +230,18 @@ class Board2048:
 
 
     def gameOver(self):
-        moves = ['up','down','left','right']
-        for move in moves:
+        for move in Move:
             if self.checkValidMove(move):
                 return False # If there is a valid move, it is not game over
         return True # If there are no valid moves, game over is True
         
+    def get_valid_moves(self):
+        valid_moves = []
+        for move in Move:
+            if self.checkValidMove(move):
+                valid_moves.append(move)
+        return valid_moves
+
 def move(board, direct, afterState=False):
     boardCopy = copy.deepcopy(board)
     boardCopy.move(direct, afterState)
