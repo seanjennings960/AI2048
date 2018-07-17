@@ -121,3 +121,4 @@ class NeuralNet():
         return dThetas
 
     def update_params(self, dThetas):
+        pass

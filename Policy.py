@@ -1,7 +1,9 @@
-import Board2048
-from NeuralNet import NeuralNet,netParams
 import copy
 from random import random, choice
+import numpy as np
+
+import Board2048
+from NeuralNet import NeuralNet,netParams
 
 
 # TODO: better define the interface with the policy
@@ -44,3 +46,20 @@ def epGreedyPolicy(board, net, ep):
         else:
             validMoves.pop(validMoves.index(bestMove))  # remove best move
             return choice(validMoves)                   # even chance of the rest
+
+
+class Policy:
+    def __init__(self):
+        raise NotImplementedError
+
+    def get_action(self, board):
+        raise NotImplementedError
+
+
+class RandomPolicy(Policy):
+    def __init__(self):
+        pass
+
+    def get_action(self, board):
+        valid_moves = board.get_valid_moves()
+        return np.random.choice(valid_moves)
