@@ -1,5 +1,5 @@
 import Board2048
-from NeuralNet import NeuralNet,netParams
+from deprecated.NeuralNet import NeuralNet,netParams
 from Policy import epGreedyPolicy
 import numpy as np
 

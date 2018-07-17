@@ -1,5 +1,5 @@
 from Board2048 import Board2048
-from NeuralNet import netParams, NeuralNet
+from deprecated.NeuralNet import netParams, NeuralNet
 import numpy as np
 
 A = Board2048()

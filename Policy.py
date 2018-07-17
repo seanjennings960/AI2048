@@ -3,7 +3,6 @@ from random import random, choice
 import numpy as np
 
 import Board2048
-from NeuralNet import NeuralNet,netParams
 
 
 # TODO: better define the interface with the policy
