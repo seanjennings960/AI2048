@@ -32,7 +32,16 @@ class EpisodeGenerator:
             move_history['reward'][move_num] = reward
 
             board.genNewTile()
-            print(move_num)
             move_num += 1
 
         return move_history[:move_num]
+
+    def play_policy_multi(self, policy, num_episodes):
+        """Play a single policy, num_episodes times.
+        Returns single move_history vector."""
+        move_history = np.zeros((0,), dtype=HISTORY_DTYPE)
+        for num_episode in range(num_episodes):
+            # Play the policy and append to move history vector
+            move_history = np.r_[move_history, self.play_policy(policy)]
+
+        return move_history

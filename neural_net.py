@@ -1,3 +1,4 @@
+import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from episode_generator import EpisodeGenerator
@@ -10,10 +11,10 @@ policy = RandomPolicy()
 num_trials = 100
 cutoff_values = np.array([1, 8, 32, 128, 2048])
 state_shape = (4, 4, len(cutoff_values) - 1)
+new_state_shape = (np.prod(state_shape),)
 
 model = Sequential([
-    Dense(32, input_shape=state_shape, activation='sigmoid'),
-    Dense(4, activation='relu'),
+    Dense(32, input_shape=new_state_shape, activation='sigmoid'),
     Dense(1),
     Activation('linear')
     ])
@@ -21,15 +22,12 @@ model = Sequential([
 model.compile(optimizer='rmsprop',
               loss='mse')
 
-for num_trial in range(num_trials):
-    move_history = episode_generator.play_policy(policy)
-    state_vectors = log_state_vector(move_history['after_state'], cutoff_values)
-    returns = sum_cumulative_returns(move_history)
-    trial_loss = model.train_on_batch(state_vectors, returns)
-    print('Trial: {} | Loss: {}'.format(num_trial, trail_loss))
-
-test_episode = episode_generator.play_policy(policy)
-state_vectors = log_state_vector(move_history['after_state'], cutoff_values)
+print('Generating Episodes...')
+move_history = episode_generator.play_policy_multi(policy, num_trials)
+state_vector = log_state_vector(move_history['after_state'], cutoff_values)
 returns = sum_cumulative_returns(move_history)
-trial_loss = model.test_on_batch(state_vectors, returns)
-print('Test Trial Loss: {}'.format(num_trial, trail_loss))
+print('Number of moves: ', move_history.shape[0])
+
+print('Fitting model')
+
+history = model.fit(state_vector, returns, epochs=5)

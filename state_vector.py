@@ -36,6 +36,10 @@ def log_state_vector(boards, cutoff_values):
     state_vectors[between_limits] = (tiles[between_limits] - 
         cutoff_lower_limit[between_limits]) / cutoff_log_diff[between_limits]
 
+    # HACK: keras model doesn't like 4 dim input shape. reshape to be 2d
+    new_shape = (state_vectors.shape[0], np.prod(state_vectors.shape[1:]))
+    state_vectors = np.reshape(state_vectors, new_shape)
+
     return state_vectors
 
 
