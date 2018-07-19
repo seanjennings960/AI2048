@@ -4,7 +4,17 @@ from Board2048 import Board2048
 
 BUFFER_SIZE = 100
 HISTORY_DTYPE = [('state', int, (4, 4)), ('action', int),
-                 ('after_state', int, (4, 4)), ('reward', int)]
+                 ('after_state', int, (4, 4)), ('reward', int),
+                 ('return', int)]
+
+def sum_cumulative_returns(move_history):
+    returns_array = np.zeros(move_history.shape)
+    cumulative_returns = 0
+    for i in range(returns_array.shape[0] - 1, -1, -1):
+        cumulative_returns += move_history[i]['reward']
+        returns_array[i] = cumulative_returns
+
+    return returns_array
 
 
 class EpisodeGenerator:
@@ -17,6 +27,8 @@ class EpisodeGenerator:
 
         move_history = np.full((BUFFER_SIZE,), np.nan, dtype=HISTORY_DTYPE)
         move_num = 0
+
+        cumulative_return = 0
 
         while not board.gameOver():
             if move_num == move_history.shape[0]:
@@ -34,7 +46,12 @@ class EpisodeGenerator:
             board.genNewTile()
             move_num += 1
 
-        return move_history[:move_num]
+        # Slice out extra entries in buffer before calculating return
+        move_history = move_history[:move_num]
+
+        move_history['return'] = sum_cumulative_returns(move_history)
+
+        return move_history
 
     def play_policy_multi(self, policy, num_episodes):
         """Play a single policy, num_episodes times.
