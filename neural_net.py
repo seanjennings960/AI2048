@@ -16,7 +16,8 @@ if not load_from_hdf5:
     move_history = episode_generator.play_policy_multi(policy, num_trials)
 else:
     f = h5py.File('episodes.hdf5')
-    move_history = f['random_policy']
+    move_history = np.array(f['random_policy'])
+    f.close()
 
 
 cutoff_values = np.array([1, 8, 32, 128, 2048])
@@ -38,4 +39,4 @@ print('Number of moves: ', move_history.shape[0])
 print('Fitting model')
 
 history = model.fit(state_vector, returns, validation_split=0.7, epochs=5)
-import pdb; pdb.set_trace()
+model.save
