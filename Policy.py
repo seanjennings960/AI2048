@@ -3,7 +3,7 @@ from random import random, choice
 import numpy as np
 
 import Board2048
-
+from Board2048 import Move
 
 # TODO: better define the interface with the policy
 # Policy should take in a state and give out an action
@@ -62,3 +62,21 @@ class RandomPolicy(Policy):
     def get_action(self, board):
         valid_moves = board.get_valid_moves()
         return np.random.choice(valid_moves)
+
+class EpGreedyPolicy(Policy):
+    def __init__(self, model, epsilon=0.75):
+        self.model = model
+        self.epsilon = epsilon
+
+    def get_action(self, board):
+        valid_moves = board.get_valid_moves()
+
+        # FIXME!! Write new things here.
+        #find the values of all after states to determine best
+        maxAfterValue = float('-inf')
+        for move in validMoves:
+            boardCopy = Board2048.move(board, move, afterState=True)
+            afterValue = net.forward(boardCopy)
+            if afterValue>maxAfterValue:
+                maxAfterValue = afterValue
+                bestMove = move
