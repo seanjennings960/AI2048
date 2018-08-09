@@ -84,13 +84,15 @@ class EpisodeGenerator:
         return move_history
 
 class NewEpisodeGenerator:
-    def __init__(self, board_size=4):
-        board = Board(board_size)
+    def __init__(self, board_size=4, low_level='vector'):
+        self.board_size = board_size
+        self.low_level = low_level
+        board = Board(board_size, low_level=low_level)
         squares = board.squares
         self.history_dtype = get_history_dtype(squares.shape, squares.dtype)
 
     def play_policy(self, policy):
-        board = Board()
+        board = Board(self.board_size, low_level=self.low_level)
 
         move_history = np.full((BUFFER_SIZE,), np.nan, dtype=self.history_dtype)
         move_num = 0

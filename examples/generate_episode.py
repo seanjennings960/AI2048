@@ -15,7 +15,7 @@ num_episodes = 1000
 # move_history = episode_generator.play_policy_multi(policy, num_episodes)
 # print('Old episode generator runtime: ', time.time() - start_time)
 
-new_episode_generator = NewEpisodeGenerator()
+new_episode_generator = NewEpisodeGenerator(low_level='minimal')
 new_policy = NewRandomPolicy()
 
 start_time = time.time()

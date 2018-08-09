@@ -1,6 +1,7 @@
 import numpy as np
 from enum import Enum
 import time
+from minimal_board import move_left_minimal
 
 NUM_STARTING_SQUARES = 2
 
@@ -10,11 +11,14 @@ def move_without_combine(board):
     tiles_per_row = np.sum(~np.isnan(board), axis=-1)
     # print('tiles_per_row', tiles_per_row)
     ts.append(time.time())
-    new_indices_flat = np.array([], dtype=int)
+    new_indices_flat = np.zeros(np.sum(tiles_per_row), dtype=int)
+    # Keeps track of which index in new_indices_flat we are at.
+    j = 0
     for i in range(board.shape[0]):
         row_start = i * board.shape[-1]
-        new_indices_flat = np.r_[new_indices_flat,
-            np.arange(tiles_per_row[i]) + row_start]
+        next_j = j + tiles_per_row[i]
+        new_indices_flat[j:next_j] = np.arange(tiles_per_row[i]) + row_start
+        j = next_j
     # print('new_indices_flat', new_indices_flat)
     ts.append(time.time())
 
@@ -57,16 +61,16 @@ def move_left(board):
     ts.append(time.time())
     ts3 = move_without_combine(board)
     ts.append(time.time())
-    print_ts(ts, 'Move time')
-    print_ts(ts1, '1st mwc')
-    print_ts(ts2, 'combine')
-    print_ts(ts3, '2nd mwc')
+    # print_ts(ts, 'Move time')
+    # print_ts(ts1, '1st mwc')
+    # print_ts(ts2, 'combine')
+    # print_ts(ts3, '2nd mwc')
 
     return score
 
 def print_ts(ts, name):
-    print('{}: '.format(name), np.diff(ts).round(5))
-    print('Total: ', ts[-1] - ts[0])
+    print('{}: '.format(name), (1000*np.diff(ts)).round(3))
+    print('Total: ', 1000*(ts[-1] - ts[0]))
 
 def board_view(board, direction):
     if direction == Direction.LEFT:
@@ -111,12 +115,18 @@ class Direction(Enum):
     LEFT = 2
     RIGHT = 3
 
+LOW_LEVEL_MAP = {
+    'vector': move_left,
+    'minimal': move_left_minimal,
+}
+
 class Board:
-    def __init__(self, board_size=4, fract_4=0.2):
+    def __init__(self, board_size=4, fract_4=0.2, low_level='vector'):
         self.board_shape = (board_size, board_size)
         self.squares = np.full(self.board_shape, np.nan)
         self.fract_4 = fract_4
         self.score = 0
+        self.move_left = LOW_LEVEL_MAP[low_level]
         for i in range(NUM_STARTING_SQUARES):
             self.gen_new_tile(copy=False)
 
@@ -136,7 +146,7 @@ class Board:
         board = np.array(self.squares)
 
         oriented_board = board_view(board, direction)
-        move_score = move_left(oriented_board)
+        move_score = self.move_left(oriented_board)
 
         # Nans comparison is always false, so also check if both squares are nan
         board_changed = ~np.all((board == self.squares) | (
