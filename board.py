@@ -1,23 +1,29 @@
 import numpy as np
 from enum import Enum
+import time
 
 NUM_STARTING_SQUARES = 2
 
 def move_without_combine(board):
+    ts = []
+    ts.append(time.time())
     tiles_per_row = np.sum(~np.isnan(board), axis=-1)
     # print('tiles_per_row', tiles_per_row)
+    ts.append(time.time())
     new_indices_flat = np.array([], dtype=int)
     for i in range(board.shape[0]):
         row_start = i * board.shape[-1]
         new_indices_flat = np.r_[new_indices_flat,
             np.arange(tiles_per_row[i]) + row_start]
     # print('new_indices_flat', new_indices_flat)
+    ts.append(time.time())
 
     board_temp = np.full(board.shape, np.nan)
     # print('Previous board values: ', board_out.flat[new_indices_flat])
     board_temp.flat[new_indices_flat] = board[~np.isnan(board)]
     board[:] = board_temp
-
+    ts.append(time.time())
+    return ts
 
 def find_combine_tiles(board):
     next_true = np.zeros(board.shape, dtype=bool)
@@ -31,17 +37,36 @@ def find_combine_tiles(board):
     return next_true, is_next
 
 def combine(board):
+    ts = []
+    ts.append(time.time())
     next_true, is_next = find_combine_tiles(board)
+    ts.append(time.time())
     board[next_true] *= 2
+    ts.append(time.time())
     board[is_next] = np.nan
-    return np.sum(board[next_true])
+    ts.append(time.time())
+    return np.sum(board[next_true]), ts
 
 
 def move_left(board):
-    move_without_combine(board)
-    score = combine(board)
-    move_without_combine(board)
+    ts = []
+    ts.append(time.time())
+    ts1 = move_without_combine(board)
+    ts.append(time.time())
+    score, ts2 = combine(board)
+    ts.append(time.time())
+    ts3 = move_without_combine(board)
+    ts.append(time.time())
+    print_ts(ts, 'Move time')
+    print_ts(ts1, '1st mwc')
+    print_ts(ts2, 'combine')
+    print_ts(ts3, '2nd mwc')
+
     return score
+
+def print_ts(ts, name):
+    print('{}: '.format(name), np.diff(ts).round(5))
+    print('Total: ', ts[-1] - ts[0])
 
 def board_view(board, direction):
     if direction == Direction.LEFT:
@@ -65,6 +90,21 @@ def check_termination(board):
             return False
     return True
 
+def gen_new_tile(board, fract_4):
+    def _new_tile_value(fract_4):
+        if np.random.random() < fract_4:
+            return 4
+        else:
+            return 2
+
+    new_tile_val = _new_tile_value(fract_4)
+    blank_tiles = np.isnan(board)
+    num_blank = np.sum(blank_tiles)
+    blank_index = np.random.choice(num_blank)
+    board_index = np.flatnonzero(blank_tiles)[blank_index]
+    board.flat[board_index] = new_tile_val
+
+
 class Direction(Enum):
     UP = 0
     DOWN = 1
@@ -78,27 +118,19 @@ class Board:
         self.fract_4 = fract_4
         self.score = 0
         for i in range(NUM_STARTING_SQUARES):
-            self.gen_new_tile(self.squares, copy=False)
+            self.gen_new_tile(copy=False)
 
     def __str__(self):
         return str(self.squares)
 
-    def gen_new_tile(self, board, copy=False):
+    def gen_new_tile(self, copy=False):
         if copy:
-            board = np.array(board)
-        new_tile_val = self._new_tile_value()
-        blank_tiles = np.isnan(board)
-        num_blank = np.sum(blank_tiles)
-        blank_index = np.random.choice(num_blank)
-        board_index = np.flatnonzero(blank_tiles)[blank_index]
-        board.flat[board_index] = new_tile_val
+            board = np.array(self.squares)
+        else:
+            board = self.squares
+        gen_new_tile(board, self.fract_4)
         return board
 
-    def _new_tile_value(self):
-        if np.random.random() < self.fract_4:
-            return 4
-        else:
-            return 2
 
     def move(self, direction, new_tile=True, copy=False):
         board = np.array(self.squares)
@@ -109,20 +141,20 @@ class Board:
         # Nans comparison is always false, so also check if both squares are nan
         board_changed = ~np.all((board == self.squares) | (
             np.isnan(board) & np.isnan(self.squares)))
-        print(board != self.squares)
-        print(board_changed)
         if new_tile and board_changed:
-            self.gen_new_tile(board)
+            gen_new_tile(board, self.fract_4)
 
         if not copy:
             self.squares[:] = board
             self.score += move_score
 
-        return board, move_score
+        return board, move_score, board_changed
 
+    def game_over(self):
+        return check_termination(self.squares)
 
 if __name__ == '__main__':
-    board = Board(board_size=2)
+    board = Board(board_size=4)
     print(board)
     playing = True
     while playing:
@@ -143,7 +175,7 @@ if __name__ == '__main__':
             break
         else:
             direction = input_map[user_input]
-        _, move_score = board.move(direction)
+        _, move_score, _ = board.move(direction)
         print('Move Score: ', move_score)
         print('Total Score: ', board.score)
         print(board)
